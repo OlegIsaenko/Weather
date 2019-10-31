@@ -3,4 +3,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="temperature_C">%s°С</string>
+    <string name="wind_speed_ms">Wind:\n%s m/s</string>
+    <string name="precipitations_mm">precipitations:\n%s mm</string>
 </resources>

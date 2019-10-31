@@ -13,9 +13,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:name=".DbService.App"
+        android:name=".App"
         android:usesCleartextTraffic="true">
-        <activity android:name=".WeatherActivity">
+        <activity android:name=".View.CityViewActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

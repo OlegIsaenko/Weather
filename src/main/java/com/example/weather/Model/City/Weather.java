@@ -1,4 +1,4 @@
-package com.example.weather.Model;
+package com.example.weather.Model.City;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

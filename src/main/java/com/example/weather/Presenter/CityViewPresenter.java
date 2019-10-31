@@ -1,147 +1,203 @@
 package com.example.weather.Presenter;
 
-import android.app.Activity;
-import android.location.Address;
-import android.location.Location;
 import android.util.Log;
 
-import com.example.weather.ApiService.ApiService;
-import com.example.weather.ApiService.IApiService;
-import com.example.weather.DbService.App;
+import com.example.weather.ApiService.Constants;
+import com.example.weather.ApiService.WeatherServiceApi;
+import com.example.weather.App;
 import com.example.weather.DbService.AppDatabase;
+import com.example.weather.Model.Forecast.ForecastItemAdapter;
 import com.example.weather.LocationService.IlocationService;
-import com.example.weather.LocationService.LocationService;
-import com.example.weather.Model.City;
-import com.example.weather.View.ICityViewFragment;
+import com.example.weather.Model.City.City;
+import com.example.weather.Model.City.CityAdapter;
+import com.example.weather.Model.Forecast.Forecast;
+import com.example.weather.Model.Forecast.ForecastItems;
+import com.example.weather.View.CityView;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-import static com.example.weather.ApiService.ApiService.TAG;
+import static com.example.weather.View.CityViewActivity.TAG;
 
 public class CityViewPresenter implements ICityViewPresenter {
 
-    private ICityViewFragment mCityViewFragment;
-    private IApiService mApiService;
+    private CityView cityView;
     private AppDatabase mDatabase;
-    private IlocationService mLocation;
+    private IlocationService locationService;
+    private WeatherServiceApi weatherServiceApi;
 
-    public CityViewPresenter(ICityViewFragment view) {
-        mCityViewFragment = view;
-        mApiService = new ApiService();
-        mLocation = new LocationService();
+    public CityViewPresenter(CityView view) {
+        cityView = view;
+        mDatabase = App.getInstance().getDatabase();
+        locationService = App.getInstance().getLocationService();
+        weatherServiceApi = App.getInstance().getApiService();
     }
-
 
     @Override
     public void getCity(String cityName) {
-        Observable.create((ObservableOnSubscribe<City>) subscriber ->
-                subscriber.onNext(mApiService.getCity(cityName)))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(city -> {
-                    if (city.getId() != null) {
-                        mCityViewFragment.showCity(city);
+        Call<City> cityCall = weatherServiceApi.getCityByName(cityName,
+                Constants.WEATHER_API_KEY,
+                Constants.DEFAULT_UNITS);
+        cityCall.enqueue(new Callback<City>() {
+            @Override
+            public void onResponse(Call<City> call, Response<City> response) {
+                City city = response.body();
+                if (response.isSuccessful()) {
+                    onFinished(city);
+                }
+            }
+            @Override
+            public void onFailure(Call<City> call, Throwable t) {
+                Log.e(TAG, "onFailure: ", t);
+            }
+        });
+    }
+
+    @Override
+    public void getForecast(String cityName) {
+        Call<Forecast> cityCall = weatherServiceApi
+                .getForecastByName(cityName, Constants.WEATHER_API_KEY, Constants.DEFAULT_UNITS);
+        cityCall.enqueue(new Callback<Forecast>() {
+            @Override
+            public void onResponse(Call<Forecast> call, Response<Forecast> response) {
+                Forecast forecast = response.body();
+                if (response.isSuccessful()) {
+                    if (forecast != null) {
+                        onFinished(forecast);
                     }
-                });
+                    else Log.i(TAG, "onResponse: NULL FORECAST");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Forecast> call, Throwable t) {
+                Log.e(TAG, "onFailure: ", t);
+            }
+        });
     }
 
     @Override
-    public void getCurrentCity(Activity activity) {
-        Observable.create((ObservableOnSubscribe<Observable<Location>>) subscriber ->
-                subscriber.onNext(mLocation.getLastLocation(activity)))
-                .subscribe(observableLocation -> observableLocation.subscribe(location ->
-                            getCity(location)));
+    public void getCity(Double lat, Double lon) {
+        Call<City> cityCall = weatherServiceApi
+                .getCityByLocation(lat, lon, Constants.WEATHER_API_KEY, Constants.DEFAULT_UNITS);
+        Log.i(TAG, "getCityByName: " + cityCall.request().toString());
+        cityCall.enqueue(new Callback<City>() {
+            @Override
+            public void onResponse(Call<City> call, Response<City> response) {
+                Log.e(TAG, "onResponse: FINE");
+                City city = response.body();
+                if (response.isSuccessful()) {
+                    onFinished(city);
+                }
+                else Log.i(TAG, "onResponse: ne uspeh");
+            }
+
+            @Override
+            public void onFailure(Call<City> call, Throwable t) {
+                Log.e(TAG, "onFailure: ", t);
+            }
+        });
     }
 
     @Override
-    public void updateLocation(Activity activity) {
-        Observable.create((ObservableOnSubscribe<Observable<Location>>) subscriber ->
-                subscriber.onNext(mLocation.updateLocation(activity)))
-                .subscribe(observableLocation -> observableLocation.subscribe(location ->
-                        {
-                            getCity(location);
-                            List<Address> addresses = mLocation.getAddressFromLocation(activity, location);
-                            String result = "";
-                            for (Address address :
-                                    addresses) {
-                                result += address.getAddressLine(0) + "\n";
-                            }
-                            mCityViewFragment.onError(result);
-                        }
-                ));
+    public void getForecast(Double lat, Double lon) {
+        Call<Forecast> cityCall = weatherServiceApi
+                .getForecastByLocation(lat, lon, Constants.WEATHER_API_KEY, Constants.DEFAULT_UNITS);
+        Log.i(TAG, "getCityByName: " + cityCall.request().toString());
+        cityCall.enqueue(new Callback<Forecast>() {
+            @Override
+            public void onResponse(Call<Forecast> call, Response<Forecast> response) {
+                Log.e(TAG, "onResponse: FINE");
+                Forecast forecast = response.body();
+                if (response.isSuccessful()) {
+                    if (forecast != null) {
+                        onFinished(forecast);
+                    }
+                    Log.i(TAG, "onResponse: NULL EXAMPLE");
+                }
+                else Log.i(TAG, "onResponse: ne uspeh");
+            }
+
+            @Override
+            public void onFailure(Call<Forecast> call, Throwable t) {
+                Log.e(TAG, "onFailure: ", t);
+            }
+        });
     }
 
     @Override
-    public void getCity(Location location) {
-        if (location != null) {
-            Log.i(TAG, "getCity: " + location.toString());
+    public void getCurrentLocation() {
+        locationService.getLastLocation()
+                .subscribe(location ->
+        {
+            Log.i(TAG, "getCurrentLocation: " + location);
             Double lat = location.getLatitude();
             Double lon = location.getLongitude();
-            Observable.create((ObservableOnSubscribe<City>) subscriber ->
-                    subscriber.onNext(mApiService.getCity(lat, lon)))
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(city -> {
-                        if (city.getId() != null) {
-                            mCityViewFragment.showCity(city);
-                        }
-                    });
+            getCity(lat, lon);
+            getForecast(lat, lon);
+        });
+    }
+
+//    @Override
+//    public void updateLocation() {
+//        locationService.updateLocation()
+//                .subscribe(location ->
+//                        {
+//                            Log.i(TAG, "updateLocation: " + location);
+//                            Double lat = location.getLatitude();
+//                            Double lon = location.getLongitude();
+//                            getCity(lat, lon);
+//                        }
+//                );
+//    }
+
+    @Override
+    public void onResume() {
+        if (cityView != null) {
+            cityView.showProgress();
         }
-        else {
-            mCityViewFragment.onError("null loca");
-            Log.i(TAG, "getCity: null");
+        getCurrentLocation();
+    }
+
+    @Override
+    public void onDestroy() {
+
+    }
+
+    @Override
+    public void onFinished(City city) {
+        if (cityView != null) {
+            cityView.setCity(new CityAdapter(city));
+            cityView.hideProgress();
         }
     }
 
     @Override
-    public void getCity(Integer cityId) {
-
+    public void onFinished(Forecast forecast) {
+        if (cityView != null) {
+            cityView.setForecast(convertForecast(forecast));
+            cityView.hideProgress();
+        }
     }
 
-    @Override
-    public void getCityList(String cityName) {
-        Observable.create((ObservableOnSubscribe<List<City>>) subscriber ->
-                subscriber.onNext(mApiService.getCityList(cityName)))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(cityList -> {
-                    if (cityList.size() != 0) {
-                        for (City city : cityList) {
-                            Log.i(TAG, "getCityList: " + city.toString());
-                        }
-                    }
-                });
+    private List<ForecastItemAdapter> convertForecast(Forecast forecast) {
+        List<ForecastItemAdapter> list = new ArrayList<>();
+        for (ForecastItems item : forecast.getForecastList()) {
+            Long date = item.getDt();
+            String description = item.getWeather().get(0).getDescription();
+            String icon = item.getWeather().get(0).getIcon();
+            String temp = item.getMain().getTemp().toString();
+            String wind = item.getWind().getSpeed().toString();
+            Double rain = item.getRain() != null ? item.getRain().get3h() : null;
+            Double snow = item.getSnow() != null ? item.getSnow().get3h() : null;
+
+            list.add(new ForecastItemAdapter(
+                    date, description, icon, temp, wind, rain, snow));
+        }
+        return list;
     }
-
-
-
-
-    @Override
-    public void getCityFromDb(Integer cityId) {
-        Observable.just(getCityById(cityId))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(city -> {
-                    mCityViewFragment.showCity(city);
-                });
-    }
-
-    @Override
-    public void updateCity() {
-
-    }
-
-
-
-    private City getCityById(Integer id) {
-        mDatabase = App.getInstance().getDatabase();
-        City city = mDatabase.cityDao().getById(id);
-        return city;
-    }
-
 }

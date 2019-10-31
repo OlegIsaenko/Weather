@@ -1,6 +1,6 @@
 package com.example.weather.LocationService;
 
-import android.app.Activity;
+import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -23,23 +23,30 @@ import java.util.Locale;
 
 import io.reactivex.Observable;
 
-import static com.example.weather.ApiService.ApiService.TAG;
+import static com.example.weather.View.CityViewActivity.TAG;
+
 
 public class LocationService implements IlocationService{
+    private Context context;
 
-    @Override
-    public Observable<Location> getLastLocation(Activity activity) {
-        FusedLocationProviderClient client =
-                LocationServices.getFusedLocationProviderClient(activity);
-
-        Task<Location> task = client.getLastLocation();
-
-        return Observable.create(emitter ->
-                task.addOnSuccessListener(activity, location -> emitter.onNext(location)));
+    public LocationService(Context context) {
+        this.context = context.getApplicationContext();
     }
 
     @Override
-    public Observable<Location> updateLocation(Activity activity) {
+    public Observable<Location> getLastLocation() {
+        FusedLocationProviderClient client =
+                LocationServices.getFusedLocationProviderClient(context);
+
+        Task<Location> task = client.getLastLocation();
+
+        return Observable.create(subscriber ->
+                task.addOnSuccessListener(location -> subscriber.onNext(location))
+        );
+    }
+
+    @Override
+    public Observable<Location> updateLocation() {
         LocationRequest request = LocationRequest.create();
         request.setNumUpdates(1);
         request.setInterval(0);
@@ -48,10 +55,10 @@ public class LocationService implements IlocationService{
                 new LocationSettingsRequest.Builder()
                         .addLocationRequest(request);
 
-        SettingsClient settingsClient = LocationServices.getSettingsClient(activity);
+        SettingsClient settingsClient = LocationServices.getSettingsClient(context);
         Task<LocationSettingsResponse> task = settingsClient
                 .checkLocationSettings(builder.build());
-        task.addOnSuccessListener(activity, locationSettingsResponse -> {
+        task.addOnSuccessListener(locationSettingsResponse -> {
             Log.i(TAG, "getLastLocation: GPS USABLE: " +
                     locationSettingsResponse.getLocationSettingsStates().isGpsUsable() + "\n" +
                     locationSettingsResponse.getLocationSettingsStates().isNetworkLocationUsable() + "\n" +
@@ -67,14 +74,14 @@ public class LocationService implements IlocationService{
             };
 
             FusedLocationProviderClient client =
-                    LocationServices.getFusedLocationProviderClient(activity);
+                    LocationServices.getFusedLocationProviderClient(context);
             client.requestLocationUpdates(request, callback, null);
         });
     }
 
     @Override
-    public List<Address> getAddressFromLocation(Activity activity, Location location) {
-        Geocoder geocoder = new Geocoder(activity, Locale.getDefault());
+    public List<Address> getAddressFromLocation(Location location) {
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> address = new ArrayList<>();
         try {
             address = geocoder.getFromLocation(

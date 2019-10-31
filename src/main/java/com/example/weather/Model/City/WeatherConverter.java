@@ -1,4 +1,4 @@
-package com.example.weather.Model;
+package com.example.weather.Model.City;
 
 import androidx.room.TypeConverter;
 
@@ -9,17 +9,21 @@ import java.util.List;
 public class WeatherConverter {
     @TypeConverter
     public String fromWeather(List<Weather> weathers) {
-        Weather weather = weathers.get(0);
-        return weather.getId() + "," +
-                weather.getMain() + "," +
-                weather.getDescription() + "," +
-                weather.getIcon();
+        String result = "";
+        for (Weather weather :
+                weathers) {
+            result = weather.getId() + "," +
+                    weather.getMain() + "," +
+                    weather.getDescription() + "," +
+                    weather.getIcon() + "\n";
+        }
+        return result;
     }
 
     @TypeConverter
     public List<Weather> toWeather(String data) {
         List<Weather> weather = new ArrayList<>();
-        List<String> temp = new ArrayList<>();
+        List<String> temp;
         temp = Arrays.asList(data.split(","));
         Weather main = new Weather();
         main.setId(Integer.parseInt(temp.get(0)));

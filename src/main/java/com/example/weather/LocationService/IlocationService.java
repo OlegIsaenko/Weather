@@ -10,9 +10,9 @@ import io.reactivex.Observable;
 
 public interface IlocationService {
 
-    Observable<Location> getLastLocation(Activity activity);
+    Observable<Location> getLastLocation();
 
-    Observable<Location> updateLocation(Activity activity);
+    Observable<Location> updateLocation();
 
-    List<Address> getAddressFromLocation(Activity activity, Location location);
+    List<Address> getAddressFromLocation(Location location);
 }

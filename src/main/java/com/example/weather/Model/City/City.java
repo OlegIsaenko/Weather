@@ -1,4 +1,4 @@
-package com.example.weather.Model;
+package com.example.weather.Model.City;
 
 import androidx.room.Embedded;
 import androidx.room.Entity;
@@ -7,6 +7,7 @@ import androidx.room.TypeConverters;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -40,7 +41,7 @@ public class City {
     private Clouds clouds;
     @SerializedName("dt")
     @Expose
-    private Integer dt;
+    private Long dt;
     @SerializedName("sys")
     @Expose
     @Embedded (prefix = "sys")
@@ -112,11 +113,11 @@ public class City {
         this.clouds = clouds;
     }
 
-    public Integer getDt() {
+    public Long getDt() {
         return dt;
     }
 
-    public void setDt(Integer dt) {
+    public void setDt(Long dt) {
         this.dt = dt;
     }
 
@@ -152,14 +153,6 @@ public class City {
         this.cod = cod;
     }
 
-
-    @Override
-    public String toString() {
-        return "City: " + getName() + ", " + this.getSys().getCountry() +
-                "\nTemp: " + getMain().getTemp() + "°C" +
-                "\nCity ID: " + getId() +
-                "\nCoords: " + getCoord().getLat() + ":" + getCoord().getLon();
-    }
 }
 
 

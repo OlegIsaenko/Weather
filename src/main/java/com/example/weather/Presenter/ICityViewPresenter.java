@@ -1,23 +1,26 @@
 package com.example.weather.Presenter;
 
-import android.app.Activity;
-import android.location.Location;
+import com.example.weather.Model.City.City;
+import com.example.weather.Model.Forecast.Forecast;
 
 public interface ICityViewPresenter {
-    void getCity(Integer cityId);
 
     void getCity(String cityName);
 
-    void getCity(Location location);
+    void getForecast(String cityName);
 
-    void getCurrentCity(Activity activity);
+    void getCity(Double lat, Double lon);
 
-    void updateLocation(Activity activity);
+    void getForecast(Double lat, Double lon);
 
-    void getCityList(String cityName);
+    void getCurrentLocation();
 
-    void getCityFromDb(Integer cityId);
+    void onResume();
 
-    void updateCity();
+    void onDestroy();
+
+    void onFinished(City city);
+
+    void onFinished(Forecast forecast);
 
 }
